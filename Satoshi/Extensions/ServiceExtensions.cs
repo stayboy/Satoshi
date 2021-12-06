@@ -56,10 +56,7 @@ public static class ServiceExtensions
     {
         services.AddDbContext<SatoContext>(opts =>
         {
-            opts.UseSqlite(configuration.GetConnectionString("conOSLMED"), b =>
-            {
-               
-            }); 
+            opts.UseSqlite($"Data Source=DbLite/Satoshi.db;Command Timeout=60"); 
         });
     }
     public static void ConfigureIISIntegration(this IServiceCollection services)
