@@ -1,10 +1,8 @@
 using Satoshi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
 
-var services = builder.Services;
-services.AddAuthorization();
+var services = builder.Services; 
 
 services.ConfigureCors();
 services.ConfigureIISIntegration();
@@ -23,8 +21,8 @@ services.ConfigureSwagger();
         options.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
         options.UseHttps("./certs/satoshi_grpc.pfx", "wst1install");
     });
-});*/
-//var app = builder.Build();
+});*/ 
+var app = builder.Build();
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "3000";
 app.Urls.Add($"https://localhost:{port}");
