@@ -30,7 +30,8 @@ public static class ServiceExtensions
         TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
 
         TypeAdapterConfig<Product, ProductDTO>.NewConfig();
-        TypeAdapterConfig<Order, OrderDTO>.NewConfig(); 
+        TypeAdapterConfig<Order, OrderDTO>.NewConfig()
+             .Map(dest => dest.ProductName, src => src.Product != null ? src.Product.ProductName : string.Empty); 
 
         var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
         // scans the assembly and gets the IRegister, adding the registration to the TypeAdapterConfig

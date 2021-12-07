@@ -13,7 +13,9 @@ public class OrderRepository : DBRepositoryBase<Order, SatoContext>, IOrderRepos
     public IQueryable<Order> FindOrders(int[] Ids, int Product, string CustomerName, string ProductName, float MinPrice, 
         float MaxPrice, int SkipTotal, int Top, OrderSort SortExpr)
     {
-        var rs = Entity.Where(x => (!Ids.Any() || Ids.Any(o => x.Id == o)) &&
+        IQueryable<Order> rs = null;
+        if (Ids?.Any() ?? false) rs = Entity.Where(x => Ids.Any(o => o == x.Id));
+        else rs = Entity.Where(x =>
             (Product == 0 || x.ProductId == Product) &&
             (string.IsNullOrWhiteSpace(CustomerName) || x.CustomerName.Contains(CustomerName)) &&
             (string.IsNullOrWhiteSpace(ProductName) || x.Product.ProductName.Contains(ProductName)) &&

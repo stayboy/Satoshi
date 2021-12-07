@@ -1,4 +1,5 @@
 using Satoshi.Extensions;
+using Satoshi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,8 +45,12 @@ app.UseCors("CorsPolicy");
 app.MapGet("/error", () => Results.Problem("An error occurred.", statusCode: 500))
    .ExcludeFromDescription();
 
-app.MapProductEndPoint(app.Services);
-app.MapOrderEndPoint(app.Services); 
+using IServiceScope serviceScope = app.Services.CreateScope();
+IServiceProvider provider = serviceScope.ServiceProvider;
+
+var repo = provider.GetRequiredService<IOrderService>();
+app.MapProductEndPoint(app.Services, repo);
+app.MapOrderEndPoint(app.Services, repo); 
 
 app.MapGet("/", () => "Hello Satoshi!");
 

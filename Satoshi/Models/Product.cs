@@ -3,7 +3,7 @@
 namespace Satoshi.Models;
 
 [Keyless]
-public record ProductStat(string ProductName, int Sales)
+public record ProductStat(long ProductId, string ProductName, int Sales)
 {
     public float? MinPrice { get; set; }
     public float? MaxPrice { get; set; }

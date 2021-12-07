@@ -8,14 +8,14 @@ using Satoshi.Services;
 namespace Satoshi.Extensions;
 public static class ApiEndPoints
 { 
-    private static IOrderService repo;
-    public static void MapProductEndPoint(this IEndpointRouteBuilder routes, IServiceProvider services)
+    //private static IOrderService repo;
+    public static void MapProductEndPoint(this IEndpointRouteBuilder routes, IServiceProvider services, IOrderService repo)
     {
-        using IServiceScope serviceScope = services.CreateScope();
-        IServiceProvider provider = serviceScope.ServiceProvider;
+        //using IServiceScope serviceScope = services.CreateScope();
+        //IServiceProvider provider = serviceScope.ServiceProvider;
 
-        repo ??= provider.GetRequiredService<IOrderService>();
-
+        //repo ??= provider.GetRequiredService<IOrderService>();
+        
         routes.MapGet("/products/{id}", async (int Id) =>
         {
             if ((await repo.ProductRepository.LoadProduct(Id)) is Product prod)
@@ -40,9 +40,15 @@ public static class ApiEndPoints
        .Produces<IEnumerable<ProductDTO>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest);
 
-        routes.MapGet("/products", async (string term, float? price, float? maxPrice, int? skip, int? top) =>
+        routes.MapGet("/products", async (string term, float? price, float? maxPrice, bool? showstats, int? skip, int? top) =>
         {
-            if ((await repo.ProductRepository.FindProducts(null, term, (price ?? 0), (maxPrice ?? 0), (skip ?? 0), (top ?? 20)).ToListAsync()) is List<Product> prods)
+
+            if ((showstats ?? false) && (await repo.ProductRepository.FindProductStats(null, term, null, null, (price ?? 0), (maxPrice ?? 0), 
+                (skip ?? 0), (top ?? 20))) is IEnumerable<ProductStat> stats)
+            {
+                return Results.Ok(stats);
+            }
+            else if ((await repo.ProductRepository.FindProducts(null, term, (price ?? 0), (maxPrice ?? 0), (skip ?? 0), (top ?? 20)).ToListAsync()) is List<Product> prods)
             {
                 if (prods.Adapt<IEnumerable<ProductDTO>>() is IEnumerable<ProductDTO> mpp) return Results.Ok(mpp);
                 else return Results.Problem("Entity flattening failed");
@@ -52,16 +58,16 @@ public static class ApiEndPoints
         .Produces<IEnumerable<ProductDTO>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
-        routes.MapGet("/products/stats", async (int productId, string term, DateTime? startDate, DateTime? endDate) =>
-        {
-            if ((await repo.ProductRepository.FindProductStats(productId, term, startDate, endDate) is IEnumerable<ProductStat> prods))
-            {
-                return Results.Ok(prods); 
-            }
-            return Results.NotFound();
-        }).WithName("GetProductStats")
-        .Produces<IEnumerable<ProductStat>>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status400BadRequest);
+        //routes.MapGet("/products/stats", async (int productId, string term, DateTime? startDate, DateTime? endDate) =>
+        //{
+        //    if ((await repo.ProductRepository.FindProductStats(productId, term, startDate, endDate, 0, null, 0, 50) is IEnumerable<ProductStat> prods))
+        //    {
+        //        return Results.Ok(prods); 
+        //    }
+        //    return Results.NotFound();
+        //}).WithName("GetProductStats")
+        //.Produces<IEnumerable<ProductStat>>(StatusCodes.Status200OK)
+        //.ProducesProblem(StatusCodes.Status400BadRequest);
 
         routes.MapPost("/products", async (string ProductName, float Price) =>
         {
@@ -111,12 +117,12 @@ public static class ApiEndPoints
           .Produces(StatusCodes.Status404NotFound);
     }
 
-    public static void MapOrderEndPoint(this IEndpointRouteBuilder routes, IServiceProvider services)
+    public static void MapOrderEndPoint(this IEndpointRouteBuilder routes, IServiceProvider services, IOrderService repo)
     {
-        using IServiceScope serviceScope = services.CreateScope();
-        IServiceProvider provider = serviceScope.ServiceProvider;
+        //using IServiceScope serviceScope = services.CreateScope();
+        //IServiceProvider provider = serviceScope.ServiceProvider;
 
-        repo ??= provider.GetRequiredService<IOrderService>();
+        //repo ??= provider.GetRequiredService<IOrderService>();
 
         routes.MapGet("/orders/{id}", async (int Id) =>
         {
@@ -146,7 +152,7 @@ public static class ApiEndPoints
         {
             if ((await repo.OrderRepository.FindOrders(null, productId ?? 0, custName, term, minPrice ?? 0, maxPrice ?? 0, skip ?? 0, top ?? 10).ToListAsync()) is List<Order> prods)
             {
-                if (prods.Adapt<IEnumerable<Order>>() is IEnumerable<OrderDTO> mpp) return Results.Ok(mpp);
+                if (prods.Adapt<List<OrderDTO>>() is List<OrderDTO> mpp) return Results.Ok(mpp);
                 else return Results.Problem("Entity flattening failed");
             }
             return Results.NotFound();
